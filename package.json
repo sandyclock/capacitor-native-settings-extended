@@ -11,7 +11,7 @@
     "android/build.gradle",
     "dist/",
     "ios/Plugin/",
-    "CapacitorNativeSettings.podspec"
+    "CapacitorNativeSettingsExtended.podspec"
   ],
   "author": "Raphael vd Woude",
   "license": "MIT",
