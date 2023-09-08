@@ -1,5 +1,5 @@
 {
-  "name": "capacitor-native-settings",
+  "name": "capacitor-native-settings-extended",
   "version": "5.0.1",
   "description": "Capacitor plugin to open native settings screens for android and iOS",
   "main": "dist/plugin.cjs.js",
@@ -17,10 +17,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RaphaelWoude/capacitor-native-settings.git"
+    "url": "git+https://github.com/sandyclock/capacitor-native-settings-extended.git"
   },
   "bugs": {
-    "url": "https://github.com/RaphaelWoude/capacitor-native-settings/issues"
+    "url": "https://github.com/sandyclock/capacitor-native-settings-extended/issues"
   },
   "keywords": [
     "capacitor",

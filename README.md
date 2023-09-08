@@ -13,14 +13,14 @@ Capacitor plugin to open native settings screens for Android and iOS.
 ## Install
 
 ```bash
-npm install capacitor-native-settings
+npm install capacitor-native-settings-extended
 npx cap sync
 ```
 
 ## Example
 
 ```JS
-import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings';
+import { NativeSettings, AndroidSettings, IOSSettings } from 'capacitor-native-settings-extended';
 
 /**
  * Note that the only supported option by Apple is "App".
