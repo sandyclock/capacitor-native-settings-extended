@@ -89,7 +89,9 @@ public enum AndroidSettings {
     VoiceInput("voice_input", ACTION_VOICE_INPUT_SETTINGS),
     Wifi("wifi", ACTION_WIFI_SETTINGS),
     WifiIp("wifi_ip", ACTION_WIFI_IP_SETTINGS),
-    Wireless("wireless", ACTION_WIRELESS_SETTINGS);
+    Wireless("wireless", ACTION_WIRELESS_SETTINGS),
+
+    ConnectedDeviceDashboardActivity("connected_devices", NativeSettingsPlugin.ConnectedDeviceDashboardActivity);
 
     private final String value;
     private final String setting;

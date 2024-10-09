@@ -2,6 +2,10 @@ import Foundation
 import Capacitor
 
 @objc(NativeSettingsPlugin)
+
+/*
+ * https://github.com/FifiTheBulldog/ios-settings-urls/blob/master/settings-urls.md
+ */
 public class NativeSettingsPlugin: CAPPlugin {
     let settingsPaths = [
         "about": "App-prefs:General&path=About",
@@ -31,7 +35,9 @@ public class NativeSettingsPlugin: CAPPlugin {
         "wifi": "App-prefs:WIFI",
         "tethering": "App-prefs:INTERNET_TETHERING",
         "doNotDisturb": "App-prefs:DO_NOT_DISTURB",
-        "touchIdPasscode": "App-prefs:TOUCHID_PASSCODE"
+        "touchIdPasscode": "App-prefs:TOUCHID_PASSCODE",
+        "guidedAccess": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE",
+        "guidedAccessAutoLockTime": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE/GuidedAccessAutoLockTime"
     ]
 
     @objc func open(_ call: CAPPluginCall) {

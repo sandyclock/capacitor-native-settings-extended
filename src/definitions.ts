@@ -266,6 +266,11 @@ export enum AndroidSettings {
    * Show settings to allow configuration of wireless controls such as Wi-Fi, Bluetooth and Mobile networks
    */
   Wireless = 'wireless',
+
+  /**
+   * Show connected devices
+   */
+  ConnectedDeviceDashboardActivity = 'connected_devices'
 }
 
 export enum IOSSettings {
@@ -413,4 +418,9 @@ export enum IOSSettings {
    * Touch id passcode settings.
    */
   TouchIdPasscode = 'touchIdPasscode',
+
+  GuidedAccess = "guidedAccess",
+
+  GuidedAccessAutoLockTime = "guidedAccessAutoLockTime"
+  
 }

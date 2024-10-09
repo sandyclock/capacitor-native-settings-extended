@@ -2,12 +2,15 @@ package nl.raphael.settings;
 
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 import static android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS;
+import static android.provider.Settings.ACTION_SETTINGS;
 import static android.provider.Settings.EXTRA_APP_PACKAGE;
+import static nl.raphael.settings.AndroidSettings.ConnectedDeviceDashboardActivity;
 
 import android.content.Intent;
 import android.net.Uri;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
+import com.getcapacitor.Logger;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
@@ -16,6 +19,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 
 @CapacitorPlugin(name = "NativeSettings")
 public class NativeSettingsPlugin extends Plugin {
+
+  public static final String ConnectedDeviceDashboardActivity = "ConnectedDeviceDashboardActivity";
 
     @PluginMethod
     public void open(PluginCall call) {
@@ -55,7 +60,15 @@ public class NativeSettingsPlugin extends Plugin {
         } else if (ACTION_APP_NOTIFICATION_SETTINGS.equals(setting)) { // App notification settings requires package name as extra app package.
             intent.setAction(setting);
             intent.putExtra(EXTRA_APP_PACKAGE, getActivity().getPackageName());
-        } else {
+        } else if (ConnectedDeviceDashboardActivity.equals(setting)){
+//          https://stackoverflow.com/questions/66010835/intent-for-settings-connected-devices-connection-preferences-page
+ //         Logger.info("***************** open native setting for connected devices:");
+//          ConnectedDeviceDashboardActivity
+//          intent.setClassName("com.android.settings", "com.android.settings.Settings$" + "AdvancedConnectedDeviceActivity");
+          intent.setClassName("com.android.settings", "com.android.settings.Settings$" + ConnectedDeviceDashboardActivity);
+
+        }
+        else {
             intent.setAction(setting);
         }
 
