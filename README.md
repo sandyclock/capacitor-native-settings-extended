@@ -208,6 +208,9 @@ might break in future iOS versions or have your app rejected in the App Store.
 | **`App`**                      | <code>'app'</code>                      | Opens your app-specific settings screen. Note that this is the only officially supported settings screen by Apple. |
 | **`AutoLock`**                 | <code>'autoLock'</code>                 | Used to set if and when the screen should be automatically locked.                                                 |
 | **`Bluetooth`**                | <code>'bluetooth'</code>                | Bluetooth settings. Allows the users to enable/disable bluetooth and to search for devices.                        |
+| **`LocationCheckPermission`**  | <code>"locationCheckPermission"</code>  | Check Location permission.                                                                                         |
+| **`BluetoothCheckPermission`** | <code>"bluetoothCheckPermission"</code> | Check Bluetooth permission.                                                                                        |
+| **`BluetoothCheckPowerOn`**    | <code>"bluetoothCheckPowerOn"</code>    | Check whether Bluetooth is turned on.                                                                              |
 | **`DateTime`**                 | <code>'dateTime'</code>                 | Date and time settings.                                                                                            |
 | **`FaceTime`**                 | <code>'facetime'</code>                 | FaceTime settings.                                                                                                 |
 | **`General`**                  | <code>'general'</code>                  | Opens iOS general settings screen.                                                                                 |

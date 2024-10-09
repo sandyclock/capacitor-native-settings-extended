@@ -295,6 +295,21 @@ export enum IOSSettings {
   Bluetooth = 'bluetooth',
 
   /**
+   * Check Location permission. 
+   */
+  LocationCheckPermission = "locationCheckPermission",
+
+  /**
+   * Check Bluetooth permission. 
+   */
+  BluetoothCheckPermission = "bluetoothCheckPermission",
+
+  /**
+   * Check whether Bluetooth is turned on. 
+   */
+  BluetoothCheckPowerOn = "bluetoothCheckPowerOn",
+
+  /**
    * Date and time settings.
    */
   DateTime = 'dateTime',
