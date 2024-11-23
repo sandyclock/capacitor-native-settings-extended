@@ -6,6 +6,7 @@ Capacitor plugin to open native settings screens for Android and iOS.
 
 | Capacitor version | Plugin version                                    |
 | ---------- | ----------------------------------------- |
+| v6 | >= v6.0.0 |
 | v5 | >= v5.0.0 |
 | v4 | >= v4.0.0 |
 | v3 | <= v2.0.1 |
@@ -238,5 +239,7 @@ might break in future iOS versions or have your app rejected in the App Store.
 | **`TouchIdPasscode`**          | <code>'touchIdPasscode'</code>          | Touch id passcode settings.                                                                                        |
 | **`GuidedAccess`**             | <code>"guidedAccess"</code>             |                                                                                                                    |
 | **`GuidedAccessAutoLockTime`** | <code>"guidedAccessAutoLockTime"</code> |                                                                                                                    |
+| **`ScreenTime`**               | <code>'screenTime'</code>               | Screen Time settings.                                                                                              |
+| **`Accessibility`**            | <code>'accessibility'</code>            | Accessibility settings.                                                                                            |
 
 </docgen-api>

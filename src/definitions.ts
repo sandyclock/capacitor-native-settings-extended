@@ -436,6 +436,15 @@ export enum IOSSettings {
 
   GuidedAccess = "guidedAccess",
 
-  GuidedAccessAutoLockTime = "guidedAccessAutoLockTime"
+  GuidedAccessAutoLockTime = "guidedAccessAutoLockTime",
   
+  /**
+   * Screen Time settings.
+   */
+  ScreenTime = 'screenTime',
+
+  /**
+   * Accessibility settings.
+   */
+  Accessibility = 'accessibility'
 }

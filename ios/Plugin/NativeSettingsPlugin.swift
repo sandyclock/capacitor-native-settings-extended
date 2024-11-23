@@ -40,7 +40,9 @@ public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
         "doNotDisturb": "App-prefs:DO_NOT_DISTURB",
         "touchIdPasscode": "App-prefs:TOUCHID_PASSCODE",
         "guidedAccess": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE",
-        "guidedAccessAutoLockTime": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE/GuidedAccessAutoLockTime"
+        "guidedAccessAutoLockTime": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE/GuidedAccessAutoLockTime",
+        "screenTime": "App-prefs:SCREEN_TIME",
+        "accessibility": "App-prefs:ACCESSIBILITY"
     ]
 
   var _call: CAPPluginCall?=nil;
