@@ -238,6 +238,11 @@ export enum AndroidSettings {
   Sync = 'sync',
 
   /**
+   * Show settings for configuring Text-to-Speech (TTS) output
+   */
+  TextToSpeech = 'text_to_speech',
+
+  /**
    * Show settings to control access to usage information
    */
   Usage = 'usage',
@@ -251,6 +256,11 @@ export enum AndroidSettings {
    * Show settings to configure input methods, in particular allowing the user to enable input methods
    */
   VoiceInput = 'voice_input',
+
+  /**
+   * Show settings to allow configuration of VPN
+   */
+  VPN = 'vpn',
 
   /**
    * Show settings to allow configuration of Wi-Fi
@@ -270,7 +280,26 @@ export enum AndroidSettings {
   /**
    * Show connected devices
    */
-  ConnectedDeviceDashboardActivity = 'connected_devices'
+  ConnectedDeviceDashboardActivity = 'connected_devices',
+
+  /**
+   * Zen mode settings.
+   */
+  ZenMode = 'zen_mode',
+
+  /**
+   * Zen mode priority settings.
+   * Note that this may not work on every single device.
+   * See: https://github.com/RaphaelWoude/capacitor-native-settings/pull/63
+   */
+  ZenModePriority = 'zen_mode_priority',
+
+  /**
+   * Zen mode blocked effects settings.
+   * Note that this may not work on every single device.
+   * See: https://github.com/RaphaelWoude/capacitor-native-settings/pull/63
+   */
+  ZenModeBlockedEffects = 'zen_mode_blocked_effects',
 }
 
 export enum IOSSettings {
@@ -283,6 +312,11 @@ export enum IOSSettings {
    * Opens your app-specific settings screen. Note that this is the only officially supported settings screen by Apple.
    */
   App = 'app',
+
+  /**
+   * Opens app-specific notification settings screen for iOS 15.4+; opens general app-specific settings for earlier versions."
+   */
+  AppNotification = 'appNotification',
 
   /**
    * Used to set if and when the screen should be automatically locked.
@@ -408,6 +442,11 @@ export enum IOSSettings {
    * Tracking settings.
    */
   Tracking = 'tracking',
+
+  /**
+   * VPN settings.
+   */
+  VPN = 'vpn',
 
   /**
    * Wallpaper settings.

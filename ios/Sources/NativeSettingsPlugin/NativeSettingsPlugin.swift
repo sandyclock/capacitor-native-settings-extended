@@ -5,11 +5,19 @@ import CoreBluetooth
 
 
 @objc(NativeSettingsPlugin)
+public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
 
-/*
- * https://github.com/FifiTheBulldog/ios-settings-urls/blob/master/settings-urls.md
- */
-public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
+    /// The unique identifier for the plugin.
+    public let identifier = "NativeSettingsPlugin"
+
+    /// The name used to reference this plugin in JavaScript.
+    public let jsName = "NativeSettings"
+
+    public let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "openIOS", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise)
+    ]
+
     let settingsPaths = [
         "about": "App-prefs:General&path=About",
         "autoLock": "App-prefs:General&path=AUTOLOCK",
@@ -42,7 +50,8 @@ public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
         "guidedAccess": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE",
         "guidedAccessAutoLockTime": "App-prefs:ACCESSIBILITY&path=GUIDED_ACCESS_TITLE/GuidedAccessAutoLockTime",
         "screenTime": "App-prefs:SCREEN_TIME",
-        "accessibility": "App-prefs:ACCESSIBILITY"
+        "accessibility": "App-prefs:ACCESSIBILITY",
+        "vpn": "App-prefs:VPN"
     ]
 
   var _call: CAPPluginCall?=nil;
@@ -70,12 +79,12 @@ public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
         let option = call.getString("option") ?? ""
         handleOpen(call: call, option: option)
     }
-    
-    @objc private func handleOpen(call: CAPPluginCall, option: String) {
-        var settingsUrl: URL!
 
-        if settingsPaths[option] != nil {
-            settingsUrl = URL(string: settingsPaths[option]!)
+    @objc private func handleOpen(call: CAPPluginCall, option: String) {
+        var settingsUrl: URL?
+
+        if let path = settingsPaths[option], let url = URL(string: path) {
+            settingsUrl = url
         } else if option == "app" {
             settingsUrl = URL(string: UIApplication.openSettingsURLString)
         } else if option == "locationCheckPermission"{
@@ -90,6 +99,12 @@ public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
                   @unknown default:
                       break
               }
+        } else if option == "appNotification" {
+            if #available(iOS 16.0, *) {
+                settingsUrl = URL(string: UIApplication.openNotificationSettingsURLString)
+            } else {
+                settingsUrl = URL(string: UIApplication.openSettingsURLString)
+            }
         } else {
               print("Location services are not enabled")
           }
@@ -125,15 +140,18 @@ public class NativeSettingsPlugin: CAPPlugin, CBCentralManagerDelegate {
             return
         }
 
+        guard let validUrl = settingsUrl, UIApplication.shared.canOpenURL(validUrl) else {
+            call.reject("Cannot open settings or invalid URL")
+            return
+        }
+
         DispatchQueue.main.async {
-            if UIApplication.shared.canOpenURL(settingsUrl) {
-                UIApplication.shared.open(settingsUrl, completionHandler: { (success) in
-                    call.resolve([
-                        "status": success
-                    ])
-                })
-            } else {
-                call.reject("Cannot open settings")
+            UIApplication.shared.open(validUrl) { success in
+                if success {
+                    call.resolve(["status": success])
+                } else {
+                    call.reject("Failed to open settings")
+                }
             }
         }
     }

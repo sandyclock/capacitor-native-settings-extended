@@ -29,6 +29,7 @@ import static android.provider.Settings.ACTION_NETWORK_OPERATOR_SETTINGS;
 import static android.provider.Settings.ACTION_NFCSHARING_SETTINGS;
 import static android.provider.Settings.ACTION_NFC_PAYMENT_SETTINGS;
 import static android.provider.Settings.ACTION_NFC_SETTINGS;
+import static android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS;
 import static android.provider.Settings.ACTION_PRINT_SETTINGS;
 import static android.provider.Settings.ACTION_PRIVACY_SETTINGS;
 import static android.provider.Settings.ACTION_QUICK_LAUNCH_SETTINGS;
@@ -41,9 +42,14 @@ import static android.provider.Settings.ACTION_SYNC_SETTINGS;
 import static android.provider.Settings.ACTION_USAGE_ACCESS_SETTINGS;
 import static android.provider.Settings.ACTION_USER_DICTIONARY_SETTINGS;
 import static android.provider.Settings.ACTION_VOICE_INPUT_SETTINGS;
+import static android.provider.Settings.ACTION_VPN_SETTINGS;
 import static android.provider.Settings.ACTION_WIFI_IP_SETTINGS;
 import static android.provider.Settings.ACTION_WIFI_SETTINGS;
 import static android.provider.Settings.ACTION_WIRELESS_SETTINGS;
+import static android.provider.Settings.ACTION_ZEN_MODE_PRIORITY_SETTINGS;
+import static nl.raphael.settings.CustomAndroidSettings.ACTION_TTS_SETTINGS;
+import static nl.raphael.settings.CustomAndroidSettings.ACTION_ZEN_MODE_BLOCKED_EFFECTS_SETTINGS;
+import static nl.raphael.settings.CustomAndroidSettings.ACTION_ZEN_MODE_SETTINGS;
 
 public enum AndroidSettings {
     Accessibility("accessibility", ACTION_ACCESSIBILITY_SETTINGS),
@@ -54,6 +60,7 @@ public enum AndroidSettings {
     ApplicationDevelopment("application_development", ACTION_APPLICATION_DEVELOPMENT_SETTINGS),
     Application("application", ACTION_APPLICATION_SETTINGS),
     AppNotification("app_notification", ACTION_APP_NOTIFICATION_SETTINGS),
+    AppNotifcationPolicy("app_notification_policy", ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS),
     BatteryOptimization("battery_optimization", ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS),
     Bluetooth("bluetooth", ACTION_BLUETOOTH_SETTINGS),
     Captioning("captioning", ACTION_CAPTIONING_SETTINGS),
@@ -84,14 +91,19 @@ public enum AndroidSettings {
     Sound("sound", ACTION_SOUND_SETTINGS),
     Storage("storage", ACTION_INTERNAL_STORAGE_SETTINGS),
     Sync("sync", ACTION_SYNC_SETTINGS),
+    TextToSpeech("text_to_speech", ACTION_TTS_SETTINGS),
     Usage("usage", ACTION_USAGE_ACCESS_SETTINGS),
     UserDictionary("user_dictionary", ACTION_USER_DICTIONARY_SETTINGS),
     VoiceInput("voice_input", ACTION_VOICE_INPUT_SETTINGS),
+    VPN("vpn", ACTION_VPN_SETTINGS),
     Wifi("wifi", ACTION_WIFI_SETTINGS),
     WifiIp("wifi_ip", ACTION_WIFI_IP_SETTINGS),
     Wireless("wireless", ACTION_WIRELESS_SETTINGS),
 
-    ConnectedDeviceDashboardActivity("connected_devices", NativeSettingsPlugin.ConnectedDeviceDashboardActivity);
+    ConnectedDeviceDashboardActivity("connected_devices", NativeSettingsPlugin.ConnectedDeviceDashboardActivity),
+    ZenMode("zen_mode", ACTION_ZEN_MODE_SETTINGS),
+    ZenModePriority("zen_mode_priority", ACTION_ZEN_MODE_PRIORITY_SETTINGS),
+    ZenModeBlockedEffects("zen_mode_blocked_effects", ACTION_ZEN_MODE_BLOCKED_EFFECTS_SETTINGS);
 
     private final String value;
     private final String setting;
