@@ -5,7 +5,7 @@ import CoreBluetooth
 
 
 @objc(NativeSettingsPlugin)
-public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin {
+public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManagerDelegate {
 
     /// The unique identifier for the plugin.
     public let identifier = "NativeSettingsPlugin"
