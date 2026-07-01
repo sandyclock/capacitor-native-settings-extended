@@ -15,7 +15,8 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
 
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "openIOS", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getDebugState", returnType: CAPPluginReturnPromise)
     ]
 
     let settingsPaths = [
@@ -78,6 +79,18 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
     @objc func openIOS(_ call: CAPPluginCall) {
         let option = call.getString("option") ?? ""
         handleOpen(call: call, option: option)
+    }
+
+    /// Device debug state is an Android concept (Developer Options / ADB) that
+    /// gates Stripe Terminal v5 Tap to Pay. iOS has no equivalent device flag,
+    /// so resolve every flag as false rather than rejecting.
+    @objc func getDebugState(_ call: CAPPluginCall) {
+        call.resolve([
+            "developerOptionsEnabled": false,
+            "adbEnabled": false,
+            "appDebuggable": false,
+            "anyDebugEnabled": false
+        ])
     }
 
     @objc private func handleOpen(call: CAPPluginCall, option: String) {

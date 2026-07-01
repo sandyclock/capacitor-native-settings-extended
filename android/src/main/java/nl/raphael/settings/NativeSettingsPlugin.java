@@ -7,7 +7,9 @@ import static android.provider.Settings.EXTRA_APP_PACKAGE;
 import static nl.raphael.settings.AndroidSettings.ConnectedDeviceDashboardActivity;
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.net.Uri;
+import android.provider.Settings;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Logger;
@@ -48,6 +50,49 @@ public class NativeSettingsPlugin extends Plugin {
         }
 
         this.openOption(call, setting);
+    }
+
+    /**
+     * Reports whether the device has debug-oriented options enabled. Stripe
+     * Terminal v5 refuses production Tap to Pay reader discovery (with a
+     * TAP_TO_PAY_INSECURE_ENVIRONMENT error) when Developer Options or USB/Wi-Fi
+     * debugging is on, so the app reads this up front to warn the user instead
+     * of letting discovery silently time out.
+     */
+    @PluginMethod
+    public void getDebugState(PluginCall call) {
+        boolean developerOptions = isGlobalSettingEnabled(Settings.Global.DEVELOPMENT_SETTINGS_ENABLED);
+        boolean adb = isGlobalSettingEnabled(Settings.Global.ADB_ENABLED);
+        boolean appDebuggable = isAppDebuggable();
+
+        JSObject ret = new JSObject();
+        ret.put("developerOptionsEnabled", developerOptions);
+        ret.put("adbEnabled", adb);
+        ret.put("appDebuggable", appDebuggable);
+        ret.put("anyDebugEnabled", developerOptions || adb);
+        call.resolve(ret);
+    }
+
+    /**
+     * True when the running app is a debuggable build (android:debuggable="true"
+     * in the merged manifest, i.e. FLAG_DEBUGGABLE). Stripe Terminal v5 refuses
+     * production Tap to Pay from a debuggable app regardless of device settings.
+     */
+    private boolean isAppDebuggable() {
+        try {
+            ApplicationInfo info = getContext().getApplicationInfo();
+            return (info.flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean isGlobalSettingEnabled(String name) {
+        try {
+            return Settings.Global.getInt(getContext().getContentResolver(), name, 0) != 0;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void openOption(PluginCall call, String setting) {

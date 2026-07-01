@@ -1,6 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { NativeSettingsPlugin } from './definitions';
+import type { DeviceDebugState, NativeSettingsPlugin } from './definitions';
 
 export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin {
   /**
@@ -31,5 +31,18 @@ export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin
     return new Promise<any>((_resolve, reject) => {
       reject(new Error('Not implemented for web.'));
     });
+  }
+
+  /**
+   * Device debug state is an Android concept; on web there is nothing to
+   * inspect, so report every flag as false rather than rejecting.
+   */
+  async getDebugState(): Promise<DeviceDebugState> {
+    return {
+      developerOptionsEnabled: false,
+      adbEnabled: false,
+      appDebuggable: false,
+      anyDebugEnabled: false,
+    };
   }
 }

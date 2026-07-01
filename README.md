@@ -55,6 +55,7 @@ NativeSettings.openIOS({
 * [`open(...)`](#open)
 * [`openAndroid(...)`](#openandroid)
 * [`openIOS(...)`](#openios)
+* [`getDebugState()`](#getdebugstate)
 * [Interfaces](#interfaces)
 * [Enums](#enums)
 
@@ -123,6 +124,28 @@ might break in future iOS versions or have your app rejected in the App Store.
 --------------------
 
 
+### getDebugState()
+
+```typescript
+getDebugState() => Promise<DeviceDebugState>
+```
+
+Reports whether the device currently has debug-oriented options enabled
+(Developer Options and/or ADB). Android only — on iOS and web every flag
+resolves to false.
+
+This exists so apps can detect the states that make Stripe Terminal v5
+refuse production Tap to Pay, and surface a clear instruction up front
+instead of letting discovery silently time out. Two distinct causes are
+reported: the device Developer Options / USB-Wi-Fi debugging being on
+(fails discovery with TAP_TO_PAY_INSECURE_ENVIRONMENT), and the app itself
+being a debuggable build (see {@link <a href="#devicedebugstate">DeviceDebugState.appDebuggable</a>}).
+
+**Returns:** <code>Promise&lt;<a href="#devicedebugstate">DeviceDebugState</a>&gt;</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -146,6 +169,16 @@ might break in future iOS versions or have your app rejected in the App Store.
 | Prop         | Type                                                |
 | ------------ | --------------------------------------------------- |
 | **`option`** | <code><a href="#iossettings">IOSSettings</a></code> |
+
+
+#### DeviceDebugState
+
+| Prop                          | Type                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`developerOptionsEnabled`** | <code>boolean</code> | True when Developer Options is enabled in the device settings (Settings.Global.DEVELOPMENT_SETTINGS_ENABLED on Android).                                                                                                                                                                                                                                                                                                                                                                                               |
+| **`adbEnabled`**              | <code>boolean</code> | True when USB debugging / ADB is enabled (Settings.Global.ADB_ENABLED on Android).                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| **`appDebuggable`**           | <code>boolean</code> | True when the running app itself is a debuggable build (ApplicationInfo.FLAG_DEBUGGABLE on Android — i.e. android:debuggable="true" in the manifest, as produced by a debug build type). This is independent of the device Developer Options / ADB settings: Stripe Terminal v5 also refuses production Tap to Pay from a debuggable app ("Debuggable applications are not supported when using the production version of the Tap to Pay reader"), which no device toggle can clear — only installing a release build. |
+| **`anyDebugEnabled`**         | <code>boolean</code> | Convenience OR of the individual flags — true when any debug option is on.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 
 ### Enums
