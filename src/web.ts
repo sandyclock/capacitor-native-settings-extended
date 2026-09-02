@@ -1,6 +1,6 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { DeviceDebugState, NativeSettingsPlugin } from './definitions';
+import type { DeviceDebugState, MicrophonePermissionState, NativeSettingsPlugin } from './definitions';
 
 export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin {
   /**
@@ -44,5 +44,50 @@ export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin
       appDebuggable: false,
       anyDebugEnabled: false,
     };
+  }
+
+  /**
+   * Best-effort read of the browser's microphone permission. The Permissions
+   * API answers without prompting where it exists; where it does not, report
+   * `prompt` rather than guessing, since a wrong `blocked` would hide the
+   * enable button for no reason.
+   */
+  async checkMicrophonePermission(): Promise<MicrophonePermissionState> {
+    try {
+      const permissions = (navigator as any).permissions;
+      if (permissions && permissions.query) {
+        const result = await permissions.query({ name: 'microphone' as PermissionName });
+        if (result.state === 'granted') {
+          return { status: 'granted', canRequest: false, blocked: false };
+        }
+        if (result.state === 'denied') {
+          return { status: 'denied', canRequest: false, blocked: true };
+        }
+      }
+    } catch {
+      // Permissions API missing or 'microphone' unrecognised -- fall through.
+    }
+    return { status: 'prompt', canRequest: true, blocked: false };
+  }
+
+  /**
+   * On the web the only way to ask is to open a capture and close it again.
+   */
+  async requestMicrophonePermission(): Promise<MicrophonePermissionState> {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return { status: 'granted', canRequest: false, blocked: false };
+    } catch (error) {
+      // Only a refusal is a refusal. NotFoundError (no microphone on this
+      // machine), NotReadableError (device held by something else) and
+      // AbortError are not the user saying no, and reporting them as `blocked`
+      // would raise an operator alarm that no settings screen can clear.
+      const name = (error as { name?: string })?.name;
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        return { status: 'denied', canRequest: false, blocked: true };
+      }
+      return { status: 'unsupported', canRequest: false, blocked: false };
+    }
   }
 }

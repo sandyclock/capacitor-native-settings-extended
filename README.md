@@ -56,7 +56,10 @@ NativeSettings.openIOS({
 * [`openAndroid(...)`](#openandroid)
 * [`openIOS(...)`](#openios)
 * [`getDebugState()`](#getdebugstate)
+* [`checkMicrophonePermission()`](#checkmicrophonepermission)
+* [`requestMicrophonePermission()`](#requestmicrophonepermission)
 * [Interfaces](#interfaces)
+* [Type Aliases](#type-aliases)
 * [Enums](#enums)
 
 </docgen-index>
@@ -146,6 +149,55 @@ being a debuggable build (see {@link <a href="#devicedebugstate">DeviceDebugStat
 --------------------
 
 
+### checkMicrophonePermission()
+
+```typescript
+checkMicrophonePermission() => Promise<MicrophonePermissionState>
+```
+
+Reports the current state of the microphone (RECORD_AUDIO) permission
+WITHOUT ever showing a dialog. Safe to call on every screen.
+
+The point of this method is the distinction the platform APIs do not give
+you directly: "never asked" versus "asked and permanently refused". A
+customer-facing kiosk needs it, because a single diner who taps Deny turns
+the voice agent off for every diner after them, and only a trip to the OS
+settings screen can undo it.
+
+**Returns:** <code>Promise&lt;<a href="#microphonepermissionstate">MicrophonePermissionState</a>&gt;</code>
+
+--------------------
+
+
+### requestMicrophonePermission()
+
+```typescript
+requestMicrophonePermission() => Promise<MicrophonePermissionState>
+```
+
+Requests the microphone permission, showing the OS dialog when the OS is
+still willing to show it, and resolves with the state that resulted.
+
+This always goes to the OS, even when a previous
+{@link NativeSettingsPlugin.checkMicrophonePermission} reported
+`blocked: true`. Android silently resets permissions for unused apps, so a
+cached "blocked" belief can be stale; a genuinely blocked permission simply
+resolves denied with no dialog, which costs nothing.
+
+🔴 iOS: the app's `Info.plist` MUST carry `NSMicrophoneUsageDescription`.
+Requesting without it terminates the app — that is an iOS rule, not a
+plugin behaviour.
+
+To send the user to the screen where a blocked permission can be restored,
+call {@link NativeSettingsPlugin.open} with
+`{ optionAndroid: <a href="#androidsettings">AndroidSettings.ApplicationDetails</a>, optionIOS: <a href="#iossettings">IOSSettings.App</a> }`.
+There is deliberately no separate method for it — that is the same screen.
+
+**Returns:** <code>Promise&lt;<a href="#microphonepermissionstate">MicrophonePermissionState</a>&gt;</code>
+
+--------------------
+
+
 ### Interfaces
 
 
@@ -179,6 +231,31 @@ being a debuggable build (see {@link <a href="#devicedebugstate">DeviceDebugStat
 | **`adbEnabled`**              | <code>boolean</code> | True when USB debugging / ADB is enabled (Settings.Global.ADB_ENABLED on Android).                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | **`appDebuggable`**           | <code>boolean</code> | True when the running app itself is a debuggable build (ApplicationInfo.FLAG_DEBUGGABLE on Android — i.e. android:debuggable="true" in the manifest, as produced by a debug build type). This is independent of the device Developer Options / ADB settings: Stripe Terminal v5 also refuses production Tap to Pay from a debuggable app ("Debuggable applications are not supported when using the production version of the Tap to Pay reader"), which no device toggle can clear — only installing a release build. |
 | **`anyDebugEnabled`**         | <code>boolean</code> | Convenience OR of the individual flags — true when any debug option is on.                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+
+
+#### MicrophonePermissionState
+
+| Prop             | Type                                                                              | Description                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ---------------- | --------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`status`**     | <code><a href="#microphonepermissionstatus">MicrophonePermissionStatus</a></code> | The coarse state.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| **`canRequest`** | <code>boolean</code>                                                              | True when calling {@link NativeSettingsPlugin.requestMicrophonePermission} can still produce an OS dialog. This is the flag to gate an "Enable the microphone" button on. On Android this is true both before the first ask and after a plain Deny (Android allows one more attempt); it goes false once the user has chosen "Don't allow" twice. On iOS it is true only before the first ask — iOS never shows the dialog a second time. |
+| **`blocked`**    | <code>boolean</code>                                                              | True when the permission is refused AND the OS will no longer offer a dialog, so the only remaining route is the app's settings screen. `blocked` is what a kiosk should surface as an operator-actionable error; `status === 'denied' && canRequest` is a diner-recoverable state and should NOT be escalated to the operator.                                                                                                           |
+
+
+### Type Aliases
+
+
+#### MicrophonePermissionStatus
+
+`granted`     — the app may capture audio right now.
+`prompt`      — never asked on this install; a request will show the dialog.
+`denied`      — refused. Check `canRequest` to learn whether asking again
+                would still put a dialog on screen.
+`unsupported` — the platform has no such permission (web), or the permission
+                is not declared in the app's manifest at all, in which case
+                no amount of requesting will ever grant it.
+
+<code>'granted' | 'prompt' | 'denied' | 'unsupported'</code>
 
 
 ### Enums

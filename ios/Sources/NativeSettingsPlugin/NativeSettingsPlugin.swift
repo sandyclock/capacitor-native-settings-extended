@@ -2,6 +2,7 @@ import Foundation
 import Capacitor
 import CoreLocation
 import CoreBluetooth
+import AVFoundation
 
 
 @objc(NativeSettingsPlugin)
@@ -16,7 +17,9 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "openIOS", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "getDebugState", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getDebugState", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "checkMicrophonePermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "requestMicrophonePermission", returnType: CAPPluginReturnPromise)
     ]
 
     let settingsPaths = [
@@ -91,6 +94,86 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
             "appDebuggable": false,
             "anyDebugEnabled": false
         ])
+    }
+
+    /// Reports the microphone permission state without ever showing a dialog.
+    @objc func checkMicrophonePermission(_ call: CAPPluginCall) {
+        call.resolve(microphoneState())
+    }
+
+    /// Requests the microphone permission and resolves with the resulting state.
+    ///
+    /// iOS shows this dialog at most once per install: after a refusal the
+    /// completion handler fires immediately with `false` and nothing appears on
+    /// screen. That is why `blocked` and `denied` coincide on iOS while they are
+    /// distinct on Android.
+    ///
+    /// 🔴 The host app's Info.plist MUST carry NSMicrophoneUsageDescription.
+    /// Requesting without it terminates the process — an iOS rule, not ours.
+    @objc func requestMicrophonePermission(_ call: CAPPluginCall) {
+        /*
+         * iOS TERMINATES the process when a microphone request is made without
+         * NSMicrophoneUsageDescription in the host app's Info.plist. Reject with
+         * something a developer can read instead of handing them a crash with no
+         * stack in it.
+         *
+         * Only missing-or-empty is rejected. A present-but-stale string is a
+         * consumer copy problem, not a crash -- iOS still shows the dialog, and
+         * refusing to ask would break a working app over wording.
+         */
+        let usage = Bundle.main.object(forInfoDictionaryKey: "NSMicrophoneUsageDescription") as? String
+        if (usage ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            call.reject("NSMicrophoneUsageDescription is missing from Info.plist. iOS terminates the app if the microphone is requested without it.")
+            return
+        }
+
+        if #available(iOS 17.0, *) {
+            AVAudioApplication.requestRecordPermission { [weak self] _ in
+                DispatchQueue.main.async {
+                    call.resolve(self?.microphoneState() ?? NativeSettingsPlugin.unsupportedMicrophoneState)
+                }
+            }
+        } else {
+            AVAudioSession.sharedInstance().requestRecordPermission { [weak self] _ in
+                DispatchQueue.main.async {
+                    call.resolve(self?.microphoneState() ?? NativeSettingsPlugin.unsupportedMicrophoneState)
+                }
+            }
+        }
+    }
+
+    private static let unsupportedMicrophoneState: [String: Any] = [
+        "status": "unsupported",
+        "canRequest": false,
+        "blocked": false
+    ]
+
+    private func microphoneState() -> [String: Any] {
+        var status = "unsupported"
+
+        if #available(iOS 17.0, *) {
+            switch AVAudioApplication.shared.recordPermission {
+            case .granted: status = "granted"
+            case .denied: status = "denied"
+            case .undetermined: status = "prompt"
+            @unknown default: status = "unsupported"
+            }
+        } else {
+            switch AVAudioSession.sharedInstance().recordPermission {
+            case .granted: status = "granted"
+            case .denied: status = "denied"
+            case .undetermined: status = "prompt"
+            @unknown default: status = "unsupported"
+            }
+        }
+
+        return [
+            "status": status,
+            // iOS offers the dialog once and only once, so the only state from
+            // which a request can still raise one is 'prompt'.
+            "canRequest": status == "prompt",
+            "blocked": status == "denied"
+        ]
     }
 
     @objc private func handleOpen(call: CAPPluginCall, option: String) {
