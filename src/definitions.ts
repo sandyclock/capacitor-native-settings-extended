@@ -552,19 +552,19 @@ export enum IOSSettings {
   Bluetooth = 'bluetooth',
 
   /**
-   * Check Location permission. 
+   * Check Location permission.
    */
-  LocationCheckPermission = "locationCheckPermission",
+  LocationCheckPermission = 'locationCheckPermission',
 
   /**
-   * Check Bluetooth permission. 
+   * Check Bluetooth permission.
    */
-  BluetoothCheckPermission = "bluetoothCheckPermission",
+  BluetoothCheckPermission = 'bluetoothCheckPermission',
 
   /**
-   * Check whether Bluetooth is turned on. 
+   * Check whether Bluetooth is turned on.
    */
-  BluetoothCheckPowerOn = "bluetoothCheckPowerOn",
+  BluetoothCheckPowerOn = 'bluetoothCheckPowerOn',
 
   /**
    * Date and time settings.
@@ -696,10 +696,10 @@ export enum IOSSettings {
    */
   TouchIdPasscode = 'touchIdPasscode',
 
-  GuidedAccess = "guidedAccess",
+  GuidedAccess = 'guidedAccess',
 
-  GuidedAccessAutoLockTime = "guidedAccessAutoLockTime",
-  
+  GuidedAccessAutoLockTime = 'guidedAccessAutoLockTime',
+
   /**
    * Screen Time settings.
    */
@@ -708,7 +708,7 @@ export enum IOSSettings {
   /**
    * Accessibility settings.
    */
-  Accessibility = 'accessibility'
+  Accessibility = 'accessibility',
 }
 
 /**

@@ -35,22 +35,20 @@ import org.json.JSONObject;
 
 @CapacitorPlugin(
     name = "NativeSettings",
-    permissions = {
-        @Permission(alias = NativeSettingsPlugin.MICROPHONE_ALIAS, strings = { Manifest.permission.RECORD_AUDIO })
-    }
+    permissions = { @Permission(alias = NativeSettingsPlugin.MICROPHONE_ALIAS, strings = { Manifest.permission.RECORD_AUDIO }) }
 )
 public class NativeSettingsPlugin extends Plugin {
 
-  public static final String ConnectedDeviceDashboardActivity = "ConnectedDeviceDashboardActivity";
+    public static final String ConnectedDeviceDashboardActivity = "ConnectedDeviceDashboardActivity";
 
-  /*
-   * Logger.warn has no (tag, message, Throwable) overload -- only Logger.error
-   * does -- so the paths below fold the exception into the message. That is the
-   * right shape anyway: a missing setting, and a settings screen that will not
-   * open, are expected outcomes here rather than errors, and a stack trace for
-   * either would be noise.
-   */
-  private static final String LOG_TAG = "NativeSettings";
+    /*
+     * Logger.warn has no (tag, message, Throwable) overload -- only Logger.error
+     * does -- so the paths below fold the exception into the message. That is the
+     * right shape anyway: a missing setting, and a settings screen that will not
+     * open, are expected outcomes here rather than errors, and a stack trace for
+     * either would be noise.
+     */
+    private static final String LOG_TAG = "NativeSettings";
 
     /**
      * Alias for RECORD_AUDIO. The annotation only registers the alias for the
@@ -444,8 +442,7 @@ public class NativeSettingsPlugin extends Plugin {
 
     private boolean isMicrophoneGranted() {
         try {
-            return ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) ==
-                PackageManager.PERMISSION_GRANTED;
+            return ContextCompat.checkSelfPermission(getContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED;
         } catch (Exception e) {
             return false;
         }
@@ -459,9 +456,7 @@ public class NativeSettingsPlugin extends Plugin {
     private boolean isMicrophoneDeclared() {
         try {
             Context context = getContext();
-            PackageInfo info = context
-                .getPackageManager()
-                .getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), PackageManager.GET_PERMISSIONS);
             if (info.requestedPermissions == null) {
                 return false;
             }
@@ -482,8 +477,7 @@ public class NativeSettingsPlugin extends Plugin {
     private boolean shouldShowMicrophoneRationale() {
         try {
             Activity activity = getActivity();
-            return activity != null &&
-                ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.RECORD_AUDIO);
+            return activity != null && ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.RECORD_AUDIO);
         } catch (Exception e) {
             return false;
         }
@@ -533,15 +527,13 @@ public class NativeSettingsPlugin extends Plugin {
         } else if (ACTION_APP_NOTIFICATION_SETTINGS.equals(setting)) { // App notification settings requires package name as extra app package.
             intent.setAction(setting);
             intent.putExtra(EXTRA_APP_PACKAGE, getActivity().getPackageName());
-        } else if (ConnectedDeviceDashboardActivity.equals(setting)){
-//          https://stackoverflow.com/questions/66010835/intent-for-settings-connected-devices-connection-preferences-page
- //         Logger.info("***************** open native setting for connected devices:");
-//          ConnectedDeviceDashboardActivity
-//          intent.setClassName("com.android.settings", "com.android.settings.Settings$" + "AdvancedConnectedDeviceActivity");
-          intent.setClassName("com.android.settings", "com.android.settings.Settings$" + ConnectedDeviceDashboardActivity);
-
-        }
-        else {
+        } else if (ConnectedDeviceDashboardActivity.equals(setting)) {
+            //          https://stackoverflow.com/questions/66010835/intent-for-settings-connected-devices-connection-preferences-page
+            //         Logger.info("***************** open native setting for connected devices:");
+            //          ConnectedDeviceDashboardActivity
+            //          intent.setClassName("com.android.settings", "com.android.settings.Settings$" + "AdvancedConnectedDeviceActivity");
+            intent.setClassName("com.android.settings", "com.android.settings.Settings$" + ConnectedDeviceDashboardActivity);
+        } else {
             intent.setAction(setting);
         }
 

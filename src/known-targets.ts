@@ -1,4 +1,4 @@
-import { VendorSettingTarget } from './definitions';
+import type { VendorSettingTarget } from './definitions';
 
 /**
  * Vendor settings screens that have been OBSERVED to open, offered as data.

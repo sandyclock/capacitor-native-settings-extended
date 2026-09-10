@@ -649,9 +649,9 @@ single launch.
 | **`AppNotification`**          | <code>'appNotification'</code>          | Opens app-specific notification settings screen for iOS 15.4+; opens general app-specific settings for earlier versions." |
 | **`AutoLock`**                 | <code>'autoLock'</code>                 | Used to set if and when the screen should be automatically locked.                                                        |
 | **`Bluetooth`**                | <code>'bluetooth'</code>                | Bluetooth settings. Allows the users to enable/disable bluetooth and to search for devices.                               |
-| **`LocationCheckPermission`**  | <code>"locationCheckPermission"</code>  | Check Location permission.                                                                                                |
-| **`BluetoothCheckPermission`** | <code>"bluetoothCheckPermission"</code> | Check Bluetooth permission.                                                                                               |
-| **`BluetoothCheckPowerOn`**    | <code>"bluetoothCheckPowerOn"</code>    | Check whether Bluetooth is turned on.                                                                                     |
+| **`LocationCheckPermission`**  | <code>'locationCheckPermission'</code>  | Check Location permission.                                                                                                |
+| **`BluetoothCheckPermission`** | <code>'bluetoothCheckPermission'</code> | Check Bluetooth permission.                                                                                               |
+| **`BluetoothCheckPowerOn`**    | <code>'bluetoothCheckPowerOn'</code>    | Check whether Bluetooth is turned on.                                                                                     |
 | **`DateTime`**                 | <code>'dateTime'</code>                 | Date and time settings.                                                                                                   |
 | **`FaceTime`**                 | <code>'facetime'</code>                 | FaceTime settings.                                                                                                        |
 | **`General`**                  | <code>'general'</code>                  | Opens iOS general settings screen.                                                                                        |
@@ -678,8 +678,8 @@ single launch.
 | **`Tethering`**                | <code>'tethering'</code>                | Tethering settings (used to create a hotspot with mobile data).                                                           |
 | **`DoNotDisturb`**             | <code>'doNotDisturb'</code>             | Do Not Disturb settings.                                                                                                  |
 | **`TouchIdPasscode`**          | <code>'touchIdPasscode'</code>          | Touch id passcode settings.                                                                                               |
-| **`GuidedAccess`**             | <code>"guidedAccess"</code>             |                                                                                                                           |
-| **`GuidedAccessAutoLockTime`** | <code>"guidedAccessAutoLockTime"</code> |                                                                                                                           |
+| **`GuidedAccess`**             | <code>'guidedAccess'</code>             |                                                                                                                           |
+| **`GuidedAccessAutoLockTime`** | <code>'guidedAccessAutoLockTime'</code> |                                                                                                                           |
 | **`ScreenTime`**               | <code>'screenTime'</code>               | Screen Time settings.                                                                                                     |
 | **`Accessibility`**            | <code>'accessibility'</code>            | Accessibility settings.                                                                                                   |
 
