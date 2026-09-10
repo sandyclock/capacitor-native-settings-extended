@@ -19,7 +19,10 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
         CAPPluginMethod(name: "open", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "getDebugState", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "checkMicrophonePermission", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "requestMicrophonePermission", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "requestMicrophonePermission", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getDeviceSetting", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "canOpenVendorSetting", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "openVendorSetting", returnType: CAPPluginReturnPromise)
     ]
 
     let settingsPaths = [
@@ -94,6 +97,63 @@ public class NativeSettingsPlugin: CAPPlugin, CAPBridgedPlugin, CBCentralManager
             "appDebuggable": false,
             "anyDebugEnabled": false
         ])
+    }
+
+    /// A named settings table is an Android concept; iOS exposes no equivalent
+    /// to read. Resolve the key as absent rather than rejecting, so a caller can
+    /// use one code path on both platforms — `present: false` is exactly what an
+    /// Android build without the key reports too.
+    @objc func getDeviceSetting(_ call: CAPPluginCall) {
+        let key = call.getString("key") ?? ""
+        if key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            call.reject("getDeviceSetting requires a key")
+            return
+        }
+        // Validate and canonicalise `scope` exactly as Android does, even though
+        // nothing here reads a table. iOS is otherwise the platform where a
+        // mistyped scope would sail through and only fail on a device.
+        //
+        // Keep in sync with DEVICE_SETTING_SCOPES in src/definitions.ts, which is
+        // where the TypeScript type and the web guard both derive from. A bridge
+        // cannot import a TS constant, so these three strings are a deliberate
+        // third copy -- the list is closed and has not changed since Android 4.
+        let scope = (call.getString("scope") ?? "system")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        if scope != "system" && scope != "secure" && scope != "global" {
+            call.reject("getDeviceSetting scope must be one of: system, secure, global")
+            return
+        }
+        call.resolve([
+            "key": key,
+            "scope": scope,
+            "value": NSNull(),
+            "present": false
+        ])
+    }
+
+    /// iOS has no vendor settings screens to address by intent or component.
+    ///
+    /// The empty-list check runs anyway. There is no answer to give either way,
+    /// but an empty `candidates` array is a caller mistake on every platform,
+    /// and a malformed call that passes here and rejects on Android is a bug
+    /// found on the slower device rather than in the editor.
+    @objc func canOpenVendorSetting(_ call: CAPPluginCall) {
+        guard let candidates = call.getArray("candidates"), !candidates.isEmpty else {
+            call.reject("canOpenVendorSetting requires a non-empty candidates array")
+            return
+        }
+        call.resolve(["available": false, "matched": NSNull()])
+    }
+
+    /// iOS has no vendor settings screens to address by intent or component.
+    /// See `canOpenVendorSetting` for why the empty-list check runs here too.
+    @objc func openVendorSetting(_ call: CAPPluginCall) {
+        guard let candidates = call.getArray("candidates"), !candidates.isEmpty else {
+            call.reject("openVendorSetting requires a non-empty candidates array")
+            return
+        }
+        call.resolve(["opened": false, "matched": NSNull()])
     }
 
     /// Reports the microphone permission state without ever showing a dialog.

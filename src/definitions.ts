@@ -46,6 +46,104 @@ export interface NativeSettingsPlugin {
    *
    * @see DeviceDebugState
    */
+  /**
+   * Reads ONE device setting by name and reports its raw value. Android only —
+   * on iOS and web it resolves `present: false, value: null`.
+   *
+   * 🔑 The value is returned as a RAW STRING, deliberately, because the useful
+   * answer here is three-state and a boolean would destroy it:
+   *
+   * - `"1"`  — the setting exists and is on
+   * - `"0"`  — the setting exists and is OFF (the user can turn it on)
+   * - `null` — the key is not present: this build has no such feature at all,
+   *            and no trip to any settings screen will ever create it
+   *
+   * The middle state is the actionable one and the one a boolean API loses. A
+   * caller that only wants "is it on" can compare to `"1"`; a caller deciding
+   * whether to OFFER a settings shortcut needs to tell `"0"` from `null`.
+   *
+   * Reading needs NO permission and does no I/O worth caching around. Writing
+   * would need `WRITE_SETTINGS` and is deliberately NOT offered: these keys are
+   * the user's, and a kiosk silently changing them is the behaviour this plugin
+   * exists to avoid.
+   *
+   * ⚠️ Vendor keys are not API. Names differ between OEMs, appear and disappear
+   * between builds of the same brand, and are not documented anywhere. `null`
+   * is therefore an ordinary answer, not an error — see
+   * {@link NativeSettingsPlugin.canOpenVendorSetting} for the matching caution
+   * about opening one.
+   *
+   * @see DeviceSettingResult
+   */
+  getDeviceSetting(options: DeviceSettingOptions): Promise<DeviceSettingResult>;
+
+  /**
+   * Reports whether any of the supplied targets can be opened on this device,
+   * WITHOUT opening anything. Android only.
+   *
+   * Candidates are tried in order and the first that resolves is reported, so
+   * a caller can pass its best guess first and fall back to a broader screen.
+   *
+   * 🔴 A `false` here is weaker evidence than it looks, and callers must treat
+   * it as "probably not" rather than "definitely not". Since Android 11 package
+   * visibility can hide an activity that genuinely exists, this probe can be a
+   * FALSE NEGATIVE unless the app declares the relevant intents in a `<queries>`
+   * element of its manifest. {@link NativeSettingsPlugin.openVendorSetting}
+   * therefore attempts each candidate for real rather than trusting this — use
+   * this method to decide whether to show a button, and let the open attempt be
+   * the final word.
+   *
+   * @see VendorSettingTarget
+   */
+  canOpenVendorSetting(options: VendorSettingOptions): Promise<VendorSettingProbeResult>;
+
+  /**
+   * Opens the first of the supplied targets that this device will accept.
+   * Android only.
+   *
+   * 🔑 This does NOT pre-filter on
+   * {@link NativeSettingsPlugin.canOpenVendorSetting}. Each candidate is
+   * launched for real and a refusal is caught, so a target hidden from the
+   * resolver by package visibility still opens. The trade is that a genuinely
+   * absent target costs one caught exception per candidate, which is cheap and
+   * happens once, in response to a tap.
+   *
+   * ⚠️ **This method holds no vendor knowledge.** It launches whatever the
+   * caller supplies, exactly as {@link NativeSettingsPlugin.getDeviceSetting}
+   * reads whatever key the caller names — OEM screens move between builds, and
+   * baking component names into the native path would mean republishing the
+   * plugin every time one moved.
+   *
+   * The package does ship {@link KnownVendorSettingTargets}: an optional,
+   * separately exported list of screens that have been observed to open. It is
+   * data a caller may pass, not behaviour this method applies, and it is
+   * explicitly not a stable API — see its own caution. Nothing here consults
+   * it, and a caller that ignores it loses nothing.
+   *
+   * 🔑 A candidate carrying **both** an action and a component is ONE intent,
+   * not a fallback pair: the action is set, then the explicit component, and
+   * the component wins resolution. Trying one form and then another is what the
+   * `candidates` LIST does — order it most-specific first.
+   *
+   * 🔑 **This survives an armed kiosk, and the reason is the TASK.** The
+   * activity is started from the host Activity's context with no
+   * `FLAG_ACTIVITY_NEW_TASK`, so the settings screen joins the app's OWN task
+   * rather than starting its own. A kiosk that re-front's itself on pause is
+   * then a no-op: the task it pulls forward is already the frontmost one, and
+   * the settings screen is on top of it. Verified 2026-09-08 on a contained
+   * device — `isInKioskMode` true, the screen opened and stayed for the whole
+   * observation rather than being pulled back.
+   *
+   * 🔴 **Do not add `FLAG_ACTIVITY_NEW_TASK` here.** It looks like tidying and
+   * would give the settings screen its own task, which is exactly the shape a
+   * containment re-front can pull back under. If a caller genuinely needs a
+   * separate task, it should drop containment first, the way an app-permission
+   * trip does.
+   *
+   * @see VendorSettingTarget
+   */
+  openVendorSetting(options: VendorSettingOptions): Promise<VendorSettingOpenResult>;
+
   getDebugState(): Promise<DeviceDebugState>;
 
   /**
@@ -611,4 +709,127 @@ export enum IOSSettings {
    * Accessibility settings.
    */
   Accessibility = 'accessibility'
+}
+
+/**
+ * The settings tables, as a value so the type and the runtime check cannot
+ * drift. A hand-written union plus a hand-written validator is two lists to
+ * keep in step, and the failure is silent in the dangerous direction: widen the
+ * type, forget the validator, and the new scope compiles at every call site
+ * while being rejected at runtime.
+ */
+export const DEVICE_SETTING_SCOPES = ['system', 'secure', 'global'] as const;
+
+/**
+ * Which of Android's three settings tables to read.
+ *
+ * `system` is where per-device user preferences live and is where vendor
+ * feature toggles are usually found, so it is the default. `secure` and
+ * `global` are readable too; many of their keys are documented platform
+ * constants rather than vendor extras.
+ */
+export type DeviceSettingScope = (typeof DEVICE_SETTING_SCOPES)[number];
+
+export interface DeviceSettingOptions {
+  /**
+   * The setting name, exactly as the vendor spells it. Case-sensitive, and not
+   * validated: an unknown name is answered `present: false`, which is
+   * indistinguishable from a device that lacks the feature. Prefer a constant
+   * in your own code over a literal at the call site.
+   */
+  key: string;
+
+  /** Defaults to `system`. */
+  scope?: DeviceSettingScope;
+}
+
+export interface DeviceSettingResult {
+  /** Echoed back, so a caller batching reads can tell answers apart. */
+  key: string;
+
+  /** Echoed back — the scope actually read, with the default applied. */
+  scope: DeviceSettingScope;
+
+  /**
+   * The raw stored value, or `null` when the key is not present.
+   * See {@link NativeSettingsPlugin.getDeviceSetting} for why this is a string.
+   */
+  value: string | null;
+
+  /**
+   * `false` means the key does not exist on this build — the feature is absent,
+   * not merely switched off. Equivalent to `value === null`, named so the
+   * distinction is hard to skim past.
+   */
+  present: boolean;
+}
+
+/**
+ * One way to address a vendor settings screen: an intent action, or an explicit
+ * component (package **and** activity together).
+ *
+ * 🔑 **A union rather than three optional fields, deliberately.** A half-specified
+ * component -- `{ package }` with no `activity` -- cannot be launched, so the
+ * native side skips it. As an interface with everything optional it would
+ * compile cleanly and then do nothing at all, which is the most expensive kind
+ * of mistake here: silent. The union makes it a compile error instead, and
+ * leaves the runtime skip as a backstop for values built dynamically.
+ *
+ * Both forms may carry the other's fields, so a candidate can name an action
+ * *and* a component.
+ *
+ * ⚠️ **That is one intent, not a fallback pair.** The native side sets the
+ * action and then the explicit component, and the component wins resolution --
+ * it does not try the action first and fall back. Trying one form and then
+ * another is what the `candidates` LIST does; a single entry naming both is a
+ * single launch.
+ */
+export type VendorSettingTarget =
+  | {
+      /** Intent action, e.g. a vendor's own `...MOTION_SETTINGS` string. */
+      action: string;
+      /** Package for an explicit component, e.g. `com.android.settings`. */
+      package?: string;
+      /**
+       * Fully-qualified activity for an explicit component. Inner-class
+       * activities use `$`, e.g. `com.android.settings.Settings$SomeActivity`.
+       */
+      activity?: string;
+    }
+  | {
+      /** Intent action, e.g. a vendor's own `...MOTION_SETTINGS` string. */
+      action?: string;
+      /** Package for an explicit component, e.g. `com.android.settings`. */
+      package: string;
+      /**
+       * Fully-qualified activity for an explicit component. Inner-class
+       * activities use `$`, e.g. `com.android.settings.Settings$SomeActivity`.
+       */
+      activity: string;
+    };
+
+export interface VendorSettingOptions {
+  /**
+   * Tried in order; the first that works wins. An empty list is an error.
+   *
+   * `readonly` so a list declared `as const` -- including the exported
+   * `KnownVendorSettingTargets` -- can be passed straight in without being
+   * copied. Nothing here mutates it.
+   */
+  candidates: readonly VendorSettingTarget[];
+}
+
+export interface VendorSettingProbeResult {
+  /** See the false-negative caution on `canOpenVendorSetting`. */
+  available: boolean;
+
+  /** The candidate that resolved, or `null`. */
+  matched: VendorSettingTarget | null;
+}
+
+export interface VendorSettingOpenResult {
+  opened: boolean;
+
+  /** The candidate that actually opened, or `null` when none would. */
+  matched: VendorSettingTarget | null;
 }

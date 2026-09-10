@@ -1,6 +1,26 @@
 import { WebPlugin } from '@capacitor/core';
 
-import type { DeviceDebugState, MicrophonePermissionState, NativeSettingsPlugin } from './definitions';
+import { DEVICE_SETTING_SCOPES } from './definitions';
+import type {
+  DeviceDebugState,
+  DeviceSettingOptions,
+  DeviceSettingResult,
+  DeviceSettingScope,
+  MicrophonePermissionState,
+  NativeSettingsPlugin,
+  VendorSettingOpenResult,
+  VendorSettingOptions,
+  VendorSettingProbeResult,
+} from './definitions';
+
+/**
+ * Narrows an arbitrary string to the scope union, so the validated value can be
+ * returned without a cast. A cast here would compile while letting a bad scope
+ * through untouched -- the failure this check exists to prevent.
+ */
+function isDeviceSettingScope(value: string): value is DeviceSettingScope {
+  return (DEVICE_SETTING_SCOPES as readonly string[]).includes(value);
+}
 
 export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin {
   /**
@@ -55,7 +75,7 @@ export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin
   async checkMicrophonePermission(): Promise<MicrophonePermissionState> {
     try {
       const permissions = (navigator as any).permissions;
-      if (permissions && permissions.query) {
+      if (permissions?.query) {
         const result = await permissions.query({ name: 'microphone' as PermissionName });
         if (result.state === 'granted') {
           return { status: 'granted', canRequest: false, blocked: false };
@@ -89,5 +109,51 @@ export class NativeSettingsWeb extends WebPlugin implements NativeSettingsPlugin
       }
       return { status: 'unsupported', canRequest: false, blocked: false };
     }
+  }
+
+  /**
+   * The browser has no device settings table. Report the key as absent rather
+   * than inventing a value: `present: false` is the honest answer and is the
+   * same one a caller gets from an Android build that lacks the key.
+   *
+   * The argument checks mirror the native ones on purpose. A web-first
+   * developer who gets a well-formed answer here for a bad key or a mistyped
+   * scope would only meet the rejection later, on a device -- so the platform
+   * that is easiest to develop against must not be the most forgiving one.
+   */
+  async getDeviceSetting(options: DeviceSettingOptions): Promise<DeviceSettingResult> {
+    if (!options?.key || options.key.trim().length === 0) {
+      throw new Error('getDeviceSetting requires a key');
+    }
+    const scope = (options.scope ?? 'system').trim().toLowerCase();
+    if (!isDeviceSettingScope(scope)) {
+      throw new Error('getDeviceSetting scope must be one of: system, secure, global');
+    }
+    return {
+      key: options.key,
+      scope,
+      value: null,
+      present: false,
+    };
+  }
+
+  /**
+   * No vendor settings screens exist on the web. An empty candidate list is
+   * still rejected, as it is natively -- it is a caller mistake on every
+   * platform, and only the native ones would otherwise say so.
+   */
+  async canOpenVendorSetting(options: VendorSettingOptions): Promise<VendorSettingProbeResult> {
+    if (!options?.candidates || options.candidates.length === 0) {
+      throw new Error('canOpenVendorSetting requires a non-empty candidates array');
+    }
+    return { available: false, matched: null };
+  }
+
+  /** No vendor settings screens exist on the web. */
+  async openVendorSetting(options: VendorSettingOptions): Promise<VendorSettingOpenResult> {
+    if (!options?.candidates || options.candidates.length === 0) {
+      throw new Error('openVendorSetting requires a non-empty candidates array');
+    }
+    return { opened: false, matched: null };
   }
 }

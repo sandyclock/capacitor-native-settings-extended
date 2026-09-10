@@ -1,6 +1,6 @@
 {
   "name": "capacitor-native-settings-extended",
-  "version": "7.3.0",
+  "version": "7.4.0",
   "description": "Capacitor plugin to open native settings screens for android and iOS",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
